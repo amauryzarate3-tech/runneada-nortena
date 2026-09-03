@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- noindex: aquí viven teléfonos y fotos de los inscritos. -->
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<title>Panel — Runneada Norteña</title>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Archivo+Black&family=Bebas+Neue&family=Archivo:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<style>
+  :root{
+    --cuero:#6B3E1E; --cuero-osc:#3D2211; --denim:#1B3A8C;
+    --arena:#C9B79C; --hueso:#F5F0E8; --verde:#2E7D4F;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:20px 16px 60px; background:var(--cuero-osc);
+    color:var(--hueso); font-family:'Archivo',system-ui,sans-serif;
+  }
+  .wrap{max-width:760px; margin:0 auto}
+  h1{font-family:'Rye',serif; font-size:26px; color:var(--arena); margin:0 0 4px}
+  .sub{font-size:13px; color:#8A7358; margin:0 0 22px}
+
+  /* ---- Resumen de arriba ---- */
+  .marcadores{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px}
+  .m{background:#54301A; border:2px solid #7A5433; border-radius:4px; padding:14px 10px; text-align:center}
+  .m b{display:block; font-family:'Archivo Black',sans-serif; font-size:30px; line-height:1}
+  .m span{font-size:11.5px; color:var(--arena); letter-spacing:.03em}
+  .m.ok b{color:#7FD9A2}
+
+  .cobranza-resumen{
+    background:#54301A; border:2px solid #7A5433; border-radius:4px;
+    padding:13px 15px; margin-bottom:20px; font-family:'Bebas Neue',sans-serif;
+    font-size:19px; letter-spacing:.04em; color:var(--arena);
+  }
+
+  /* ---- Filtros ---- */
+  .filtros{display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap}
+  .f{
+    padding:9px 16px; cursor:pointer; background:#54301A;
+    border:2px solid #7A5433; border-radius:3px;
+    font-family:'Bebas Neue',sans-serif; font-size:17px; letter-spacing:.03em;
+  }
+  .f.on{background:var(--denim); border-color:var(--arena); color:#fff}
+
+  /* ---- Tarjetas de inscritos ---- */
+  .fila{
+    display:flex; align-items:center; gap:13px;
+    background:#54301A; border:2px solid #7A5433; border-left-width:7px;
+    border-radius:4px; padding:13px; margin-bottom:9px;
+  }
+  .fila.pagado{border-left-color:var(--verde)}
+  .fila.pendiente{border-left-color:#C77F3A}
+  .n{
+    font-family:'Archivo Black',sans-serif; font-size:21px;
+    min-width:52px; text-align:center; color:var(--arena);
+  }
+  .quien{flex:1; min-width:0}
+  .quien b{display:block; font-size:15px; margin-bottom:2px}
+  .quien span{font-size:12.5px; color:#A89078}
+  .acciones{display:flex; flex-direction:column; gap:6px}
+  .btn{
+    padding:8px 13px; cursor:pointer; border:none; border-radius:3px;
+    font-family:'Bebas Neue',sans-serif; font-size:15px; letter-spacing:.03em;
+    white-space:nowrap;
+  }
+  .b-pagar{background:var(--verde); color:#fff}
+  .b-quitar{background:#7A5433; color:var(--arena)}
+  .b-post{background:var(--denim); color:#fff}
+  .b-wa{background:#25D366; color:#06301A; text-decoration:none; display:block; text-align:center}
+  .vacio{text-align:center; color:#8A7358; padding:40px 20px; line-height:1.6}
+
+  /* ---- Vista para generar la publicación ---- */
+  .capa{
+    display:none; position:fixed; inset:0; background:rgba(20,11,5,.94);
+    z-index:50; overflow-y:auto; padding:24px 16px;
+  }
+  .capa.abierta{display:block}
+  .caja{max-width:400px; margin:0 auto; text-align:center}
+  #salida{width:100%; border:2px solid #7A5433; border-radius:4px}
+  .cerrar{
+    margin-top:14px; padding:13px 22px; background:#7A5433; color:var(--hueso);
+    border:none; border-radius:3px; cursor:pointer; font-family:'Bebas Neue',sans-serif; font-size:17px;
+  }
+  .bajar{
+    display:block; margin-top:14px; padding:15px; background:var(--arena);
+    color:var(--cuero-osc); border:none; border-radius:3px; width:100%;
+    font-family:'Archivo Black',sans-serif; font-size:16px; cursor:pointer;
+  }
+  .tip{font-size:13px; color:#A89078; margin-top:14px; line-height:1.55}
+  .ajustes{
+    display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:6px;
+  }
+  .b-ajuste{
+    padding:14px 10px; cursor:pointer; background:#54301A; color:var(--hueso);
+    border:2px solid #7A5433; border-radius:3px;
+    font-family:'Bebas Neue',sans-serif; font-size:18px; letter-spacing:.03em;
+  }
+  .b-ajuste:active{background:#7A5433}
+
+  /* ---- Login ---- */
+  .login-wrap{
+    max-width:340px; margin:80px auto; padding:0 16px; text-align:center;
+  }
+  .login-caja{
+    background:#54301A; border:2px solid #7A5433; border-radius:6px;
+    padding:26px 22px; text-align:left;
+  }
+  .login-caja label{display:block; font-size:13.5px; font-weight:700; color:var(--arena); margin:0 0 6px}
+  .login-caja input{
+    width:100%; padding:13px 14px; margin-bottom:14px;
+    background:#3D2211; color:var(--hueso); border:2px solid #7A5433;
+    border-radius:3px; font-family:inherit; font-size:16px;
+  }
+  .login-caja input:focus{outline:3px solid var(--arena); outline-offset:2px; border-color:var(--arena)}
+  .b-entrar{
+    width:100%; padding:14px; cursor:pointer; background:var(--denim); color:#fff;
+    border:none; border-radius:3px; font-family:'Archivo Black',sans-serif; font-size:16px;
+  }
+  .login-err{color:#F0917C; font-size:13.5px; margin:0 0 14px; display:none}
+  .b-salir{
+    background:none; border:none; color:#A89078; text-decoration:underline;
+    cursor:pointer; font-family:inherit; font-size:13px; float:right;
+  }
+</style>
+
+<!-- ============ LOGIN ============ -->
+<div class="login-wrap" id="pantallaLogin">
+  <h1 style="margin-bottom:18px">Panel de inscritos</h1>
+  <div class="login-caja">
+    <p class="login-err" id="loginErr">Correo o contraseña incorrectos.</p>
+    <label for="loginCorreo">Correo</label>
+    <input type="email" id="loginCorreo" autocomplete="username">
+    <label for="loginPass">Contraseña</label>
+    <input type="password" id="loginPass" autocomplete="current-password">
+    <button class="b-entrar" id="btnEntrar">Entrar</button>
+  </div>
+</div>
+
+<div class="wrap" id="panelPrincipal" style="display:none">
+  <button class="b-salir" id="btnSalir">Cerrar sesión</button>
+  <h1>Panel de inscritos</h1>
+  <p class="sub">Runneada Norteña 4K · 26 de septiembre</p>
+
+  <div class="marcadores">
+    <div class="m"><b id="cTotal">0</b><span>REGISTRADOS</span></div>
+    <div class="m ok"><b id="cPagados">0</b><span>PAGADOS</span></div>
+    <div class="m"><b id="cPend">0</b><span>PENDIENTES</span></div>
+  </div>
+
+  <div class="cobranza-resumen" id="cobranza">COBRADO: $0 · SALDO POR COBRAR: $0</div>
+
+  <div class="filtros">
+    <div class="f on" data-f="todos">TODOS</div>
+    <div class="f" data-f="pendiente">PENDIENTES</div>
+    <div class="f" data-f="pagado">PAGADOS</div>
+    <div class="f" data-f="postear">LISTOS PARA POSTEAR</div>
+  </div>
+
+  <div id="lista"></div>
+</div>
+
+<!-- Vista de la imagen generada -->
+<div class="capa" id="capa">
+  <div class="caja">
+    <canvas id="salida" width="1080" height="1350"></canvas>
+
+    <p class="tip" style="margin:14px 0 6px">Si la foto no se ve bien, ajústala aquí:</p>
+    <div class="ajustes">
+      <button class="btn b-ajuste" id="ajAlejar">− Alejar</button>
+      <button class="btn b-ajuste" id="ajAcercar">+ Acercar</button>
+      <button class="btn b-ajuste" id="ajArriba">▲ Subir</button>
+      <button class="btn b-ajuste" id="ajAbajo">▼ Bajar</button>
+      <button class="btn b-ajuste" id="ajIzq">◀ Izquierda</button>
+      <button class="btn b-ajuste" id="ajDer">Derecha ▶</button>
+      <button class="btn b-ajuste" id="ajCentrar" style="grid-column:1/3">Centrar de nuevo</button>
+    </div>
+
+    <button class="bajar" id="bajar">Descargar para publicar</button>
+    <p class="tip" id="tipEtiqueta"></p>
+    <button class="cerrar" id="cerrar">Cerrar</button>
+  </div>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let filtro = 'todos';
+let todos = [];
+
+// La anon key está diseñada para vivir en el cliente — la protección real
+// de los datos (teléfonos, fotos) la da RLS del lado de Supabase: solo un
+// usuario logueado (autenticado) puede leer o modificar la tabla.
+const SUPABASE_URL = 'https://gvmwncxufhbxmgcokmus.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2bXduY3h1ZmhieG1nY29rbXVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTMyODYsImV4cCI6MjEwNDAyOTI4Nn0.YuSnjGjjTvy8bt9QS-EVsaQu7WRmrJuK-1f5xxahoyY';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ---- Sesión: mostrar el panel solo si hay alguien logueado ----
+async function revisarSesion(){
+  const { data:{ session } } = await db.auth.getSession();
+  if (session){
+    $('pantallaLogin').style.display = 'none';
+    $('panelPrincipal').style.display = 'block';
+    cargarYPintar();
+  } else {
+    $('pantallaLogin').style.display = 'block';
+    $('panelPrincipal').style.display = 'none';
+  }
+}
+
+$('btnEntrar').addEventListener('click', async () => {
+  const boton = $('btnEntrar');
+  $('loginErr').style.display = 'none';
+  boton.disabled = true; boton.textContent = 'Entrando…';
+  const { error } = await db.auth.signInWithPassword({
+    email: $('loginCorreo').value.trim(),
+    password: $('loginPass').value,
+  });
+  boton.disabled = false; boton.textContent = 'Entrar';
+  if (error){ $('loginErr').style.display = 'block'; return; }
+  $('loginPass').value = '';
+  revisarSesion();
+});
+// Enter en cualquiera de los dos campos también manda el login
+['loginCorreo','loginPass'].forEach(id => $(id).addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('btnEntrar').click();
+}));
+
+$('btnSalir').addEventListener('click', async () => {
+  await db.auth.signOut();
+  revisarSesion();
+});
+
+// ---- Datos: siempre desde Supabase, nunca localStorage ----
+async function cargarYPintar(){
+  const { data, error } = await db.from('inscritos').select('*').order('num');
+  if (error){
+    console.error(error);
+    $('lista').innerHTML = '<div class="vacio">No se pudo cargar la lista. Revisa tu internet y recarga la página.</div>';
+    return;
+  }
+  todos = data;
+  pintar();
+}
+
+// ---- Filtros ----
+document.querySelectorAll('.f').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.f').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  filtro = b.dataset.f;
+  pintar();
+}));
+
+function pintar(){
+  // Resumen
+  const normalizados = todos.map(r => ({...r, monto_pagado: Number(r.monto_pagado ?? (r.pagado ? 200 : 0))}));
+  const pagados = normalizados.filter(r => r.monto_pagado >= 200).length;
+  const cobrado = normalizados.reduce((s,r) => s + r.monto_pagado, 0);
+  $('cTotal').textContent   = todos.length;
+  $('cPagados').textContent = pagados;
+  $('cPend').textContent    = normalizados.length - pagados;
+  $('cobranza').textContent = `COBRADO: $${cobrado.toFixed(2)} · SALDO POR COBRAR: $${Math.max(0, normalizados.length*200-cobrado).toFixed(2)}`;
+
+  /* Conteo de tallas — ya no aplica: todas las playeras son iguales.
+  // realmente hay que mandar a hacer.
+  const cuenta = {};
+  todos.filter(r => r.pagado).forEach(r => cuenta[r.talla] = (cuenta[r.talla]||0)+1);
+  const orden = ['CH','M','G','XG','2XG'].filter(t => cuenta[t]);
+  $('tallas').textContent = orden.length
+    ? 'PLAYERAS A PEDIR: ' + orden.map(t => `${t}: ${cuenta[t]}`).join('  ·  ')
+    : 'PLAYERAS A PEDIR: — (aparece cuando confirmes pagos)'; */
+
+  // Lista filtrada
+  let lista = normalizados;
+  if (filtro === 'pagado')   lista = normalizados.filter(r => r.monto_pagado >= 200);
+  if (filtro === 'pendiente')lista = normalizados.filter(r => r.monto_pagado < 200);
+  if (filtro === 'postear')  lista = normalizados.filter(r => r.monto_pagado >= 200 && r.permiso && r.foto_url);
+
+  if (!lista.length){
+    $('lista').innerHTML = '<div class="vacio">No hay nadie en esta vista todavía.</div>';
+    return;
+  }
+
+  $('lista').innerHTML = lista.map(r => {
+    const pagado = r.monto_pagado >= 200;
+    const puedePostear = pagado && r.permiso && r.foto_url;
+    const wa = `https://wa.me/52${r.tel}`;
+    return `
+      <div class="fila ${pagado ? 'pagado' : 'pendiente'}">
+        <div class="n">#${r.num}</div>
+        <div class="quien">
+          <b>${esc(r.nombre)}</b>
+          <span>${esc(r.pueblo)} · ${esc(r.tel)} · Pagado: $${r.monto_pagado.toFixed(2)}
+          ${r.permiso ? ' · 📷 dio permiso' : ''}</span>
+        </div>
+        <div class="acciones">
+          ${pagado
+            ? `<button class="btn b-pagar" disabled style="opacity:.6;cursor:default">Pagado ✓</button>`
+            : `<button class="btn b-pagar" data-pagar="${r.num}">Marcar pagado</button>
+               <button class="btn b-quitar" data-anticipo="${r.num}">Registrar anticipo</button>`
+          }
+          ${puedePostear ? `<button class="btn b-post" data-post="${r.num}">Generar post</button>` : ''}
+          <a class="btn b-wa" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Escapar texto antes de meterlo al HTML: los nombres los escribe el
+// público, así que nunca se insertan crudos.
+function esc(s){
+  return String(s ?? '').replace(/[&<>"']/g,
+    c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ---- Acciones ----
+$('lista').addEventListener('click', async e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+
+  if (b.dataset.pagar){
+    const r = todos.find(x => x.num === +b.dataset.pagar);
+    if (!r) return;
+    b.disabled = true; b.textContent = 'Guardando…';
+    const { error } = await db.from('inscritos').update({
+      pagado: true,
+      monto_pagado: Math.max(Number(r.monto_pagado) || 0, 200),
+    }).eq('num', r.num);
+    if (error){ console.error(error); alert('No se pudo guardar. Intenta de nuevo.'); }
+    await cargarYPintar();
+    return;
+  }
+
+  if (b.dataset.anticipo){
+    const num = +b.dataset.anticipo;
+    const r = todos.find(x => x.num === num);
+    if (!r) return;
+    const monto = Number(prompt(`Monto del anticipo para ${r.nombre}:`, '100'));
+    if (!Number.isFinite(monto) || monto <= 0) return;
+    const metodo = prompt('Método de pago: escribe "efectivo" o "transferencia"', 'efectivo')?.trim().toLowerCase();
+    if (!['efectivo','transferencia'].includes(metodo)) { alert('Método no válido. Usa efectivo o transferencia.'); return; }
+
+    b.disabled = true; b.textContent = 'Guardando…';
+    const nuevoMonto = (Number(r.monto_pagado) || 0) + monto;
+    const { error: errPago } = await db.from('pagos').insert({ inscrito_id: num, monto, metodo });
+    const { error: errUpd } = await db.from('inscritos').update({
+      monto_pagado: nuevoMonto, pagado: nuevoMonto >= 200,
+    }).eq('num', num);
+    if (errPago || errUpd){ console.error(errPago || errUpd); alert('No se pudo guardar. Intenta de nuevo.'); }
+    await cargarYPintar();
+    return;
+  }
+
+  if (b.dataset.post){
+    const r = todos.find(x => x.num === +b.dataset.post);
+    if (r) generarPost(r);
+  }
+});
+
+// ---- Generar la imagen de "ya está registrado" ----
+let actual = null, actualImg = null, actualFondo = null;
+// Ajuste manual de la foto: por si el recorte automático no cae bien
+// (foto muy alta/ancha, cara descentrada). Se reinicia en cada post.
+let ajuste = { escala: 1, dx: 0, dy: 0 };
+
+async function generarPost(r){
+  actual = r;
+  ajuste = { escala: 1, dx: 0, dy: 0 };
+  await document.fonts.ready;   // sin esto el canvas usa la fuente de respaldo
+
+  const img = new Image();
+  const fondo = new Image();
+  // La foto ahora vive en Supabase Storage (otro origen): sin
+  // crossOrigin, aunque el servidor mande CORS abierto, el canvas queda
+  // "manchado" y toDataURL() truena al descargar.
+  img.crossOrigin = 'anonymous';
+  let dibujado = false; // fondo e img cargan por separado; sin esto se
+                         // puede pintar dos veces si ambos "load" caen
+                         // en el mismo tick.
+  const abrir = () => {
+    if (dibujado || !img.complete || !img.naturalWidth) return;
+    dibujado = true;
+    actualImg = img; actualFondo = fondo;
+    dibujar(img, r, fondo, ajuste); $('capa').classList.add('abierta');
+  };
+  fondo.onload = abrir;
+  fondo.onerror = abrir;
+  // Ruta relativa: el PNG del logo debe subirse junto al HTML al
+  // publicar, en la misma carpeta (o ajustar esta ruta al hospedarlo).
+  fondo.src = 'logo.png';
+  img.onload = () => { if (fondo.complete) abrir(); };
+  img.onerror = () => alert('No se pudo cargar la foto de este corredor.');
+  img.src = r.foto_url;
+
+  $('tipEtiqueta').textContent = r.ig
+    ? `Al publicar, etiqueta a ${r.ig} para que pueda repostearla.`
+    : 'No dejó su Instagram — pregúntale para poder etiquetarlo.';
+}
+
+// ---- Botones de ajuste de foto ----
+const PASO_MOVER = 45, PASO_ZOOM = 0.18, ZOOM_MAX = 2.6;
+function reajustar(cambios){
+  Object.assign(ajuste, cambios);
+  if (actualImg) dibujar(actualImg, actual, actualFondo, ajuste);
+}
+$('ajAcercar').addEventListener('click', () => reajustar({ escala: Math.min(ZOOM_MAX, ajuste.escala + PASO_ZOOM) }));
+$('ajAlejar').addEventListener('click', () => reajustar({ escala: Math.max(1, ajuste.escala - PASO_ZOOM) }));
+$('ajArriba').addEventListener('click', () => reajustar({ dy: ajuste.dy + PASO_MOVER }));
+$('ajAbajo').addEventListener('click', () => reajustar({ dy: ajuste.dy - PASO_MOVER }));
+$('ajIzq').addEventListener('click', () => reajustar({ dx: ajuste.dx + PASO_MOVER }));
+$('ajDer').addEventListener('click', () => reajustar({ dx: ajuste.dx - PASO_MOVER }));
+$('ajCentrar').addEventListener('click', () => reajustar({ escala: 1, dx: 0, dy: 0 }));
+
+function dibujar(img, r, fondo, ajuste){
+  const c = $('salida'), x = c.getContext('2d');
+  const W = c.width, H = c.height;
+
+  // clearRect antes del relleno: por si un dibujo anterior dejó el
+  // modo de composición (globalCompositeOperation) en algo distinto a
+  // "source-over", esto garantiza un lienzo realmente limpio.
+  x.globalCompositeOperation = 'source-over';
+  x.clearRect(0,0,W,H);
+  x.fillStyle = '#3D2211'; x.fillRect(0,0,W,H);
+
+  // Logo arriba, a modo de título — el PNG ya viene recortado a su
+  // contenido real (sin el margen transparente que traía el archivo
+  // original), así que esta altura es la del dibujo, no la del lienzo.
+  const logoW = 620;
+  const logoH = fondo && fondo.naturalWidth ? logoW * (fondo.height/fondo.width) : 0;
+  const logoTop = 24;
+
+  // Franja del evento (altura fija) y zona de foto: todo lo que
+  // sobra entre el logo y la franja. Más alta que antes para hacerle
+  // lugar al llamado a la acción y al espacio del sticker de link.
+  const bannerH = 300;
+  const zonaTop = logoTop + logoH + 24;
+  const zona = H - bannerH - 16;
+
+  // Foto recortada estilo "cover" en el espacio disponible, con el
+  // ajuste manual (zoom/paneo) encima. El paneo se limita a lo que el
+  // zoom permite, para que nunca se abra un hueco en los bordes.
+  const rectH = zona-zonaTop;
+  const k = Math.max(W/img.width, rectH/img.height) * (ajuste?.escala || 1);
+  const dw = img.width*k, dh = img.height*k;
+  const maxDX = Math.max(0, (dw-W)/2), maxDY = Math.max(0, (dh-rectH)/2);
+  if (ajuste){
+    ajuste.dx = Math.max(-maxDX, Math.min(maxDX, ajuste.dx));
+    ajuste.dy = Math.max(-maxDY, Math.min(maxDY, ajuste.dy));
+  }
+  const px = (W-dw)/2 + (ajuste?.dx || 0);
+  const py = zonaTop+(rectH-dh)/2 + (ajuste?.dy || 0);
+  x.save();
+  x.beginPath(); x.rect(0,zonaTop,W,rectH); x.clip();
+  x.drawImage(img, px, py, dw, dh);
+
+  // Viraje sepia suave: uniforma fotos de calidad muy distinta sin
+  // dejar la piel irreal.
+  x.globalCompositeOperation = 'saturation';
+  x.fillStyle = '#707070'; x.fillRect(0,zonaTop,W,zona-zonaTop);
+  x.globalCompositeOperation = 'multiply';
+  x.fillStyle = '#C08A50'; x.fillRect(0,zonaTop,W,zona-zonaTop);
+  x.globalCompositeOperation = 'lighten';
+  x.fillStyle = '#2A1808'; x.fillRect(0,zonaTop,W,zona-zonaTop);
+  x.restore();
+
+  // Oscurece solo la franja baja de la foto, donde va el texto
+  const fadeTop = zona - 315;
+  const fade = x.createLinearGradient(0, fadeTop, 0, zona);
+  fade.addColorStop(0,'rgba(61,34,17,0)');
+  fade.addColorStop(1,'#3D2211');
+  x.fillStyle = fade; x.fillRect(0, fadeTop, W, zona-fadeTop);
+
+  // Logo de marca (PNG con transparencia), directo sobre el fondo
+  if (fondo && fondo.naturalWidth){
+    x.save();
+    x.shadowColor = 'rgba(0,0,0,.45)'; x.shadowBlur = 20;
+    x.drawImage(fondo, (W-logoW)/2, logoTop, logoW, logoH);
+    x.restore();
+  }
+
+  x.textAlign = 'center';
+
+  // Sello de confirmación — es el mensaje del post
+  x.fillStyle = '#1B3A8C';
+  x.fillRect(W/2-260, zona-285, 520, 76);
+  x.fillStyle = '#F5F0E8';
+  x.font = "48px 'Bebas Neue', sans-serif";
+  x.fillText('¡YA ESTÁ REGISTRADO!', W/2, zona-229);
+
+  // Nombre en 'Rye' — la misma familia del logo, para que el post no
+  // mezcle dos voces tipográficas distintas. Encogido para caber siempre.
+  // Rye tiene ascendentes más altos que Archivo Black: se le deja más
+  // aire arriba (respecto al sello) que a un sans-serif normal.
+  const nombre = r.nombre.toUpperCase();
+  let t = 108;
+  do { x.font = `${t}px 'Rye', serif`; t -= 3; }
+  while (x.measureText(nombre).width > W-70 && t > 40);
+  x.lineWidth = 8; x.lineJoin = 'round'; x.strokeStyle = '#2A1808';
+  x.strokeText(nombre, W/2, zona-108);
+  x.fillStyle = '#F5F0E8';
+  x.fillText(nombre, W/2, zona-108);
+
+  x.font = "42px 'Bebas Neue', sans-serif";
+  x.fillStyle = '#C9B79C';
+  x.fillText(`CORREDOR #${r.num} · ${r.pueblo.toUpperCase()}`, W/2, zona-32);
+
+  // Franja del evento
+  const fy = H-bannerH;
+  x.fillStyle = '#1B3A8C'; x.fillRect(0, fy, W, bannerH);
+  x.fillStyle = '#F5F0E8';
+  x.font = "32px 'Bebas Neue', sans-serif";
+  x.fillText('4K · 26 DE SEPTIEMBRE · CAMARGO', W/2, fy+44);
+
+  // Llamado a la acción, y debajo un espacio reservado más grande para
+  // que Fit-Hour pegue ahí el sticker de link real al publicar la
+  // historia — así queda alineado y no se ve encimado.
+  x.font = "38px 'Bebas Neue', sans-serif";
+  x.fillText('TOCA EL LINK PARA REGISTRARTE ↓', W/2, fy+92);
+
+  x.strokeStyle = 'rgba(245,240,232,.9)'; x.lineWidth = 3;
+  x.strokeRect(W/2-340, fy+112, 680, 116);
+
+  // Respaldo permanente: si alguien reposta la historia a la suya,
+  // Instagram le quita los stickers interactivos (incluido el de link)
+  // y solo queda la imagen fija — este texto es lo único que sí llega
+  // a esas personas, por eso va grande y no como nota chica.
+  x.fillStyle = '#C9B79C';
+  x.font = "30px 'Bebas Neue', sans-serif";
+  x.fillText('@fit_hour_runningclub · 897-971-8959', W/2, fy+272);
+}
+
+$('bajar').addEventListener('click', () => {
+  const a = document.createElement('a');
+  a.download = `corredor-${actual.num}.png`;
+  a.href = $('salida').toDataURL('image/png');
+  a.click();
+});
+$('cerrar').addEventListener('click', () => $('capa').classList.remove('abierta'));
+
+revisarSesion();
+</script>

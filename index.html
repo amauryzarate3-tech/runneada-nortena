@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- noindex: la página trae datos bancarios de Fit-Hour. Que circule por
+     el link que ellos compartan, no en resultados de Google.
+     noarchive/nosnippet evitan además la copia en caché y el fragmento. -->
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+<title>Inscríbete — Runneada Norteña 4K</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rye&family=Archivo+Black&family=Bebas+Neue&family=Archivo:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+
+<style>
+  :root{
+    --cuero:#6B3E1E; --cuero-osc:#3D2211; --denim:#1B3A8C;
+    --arena:#C9B79C; --hueso:#F5F0E8; --verde-wa:#25D366;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; padding:0 0 60px;
+    background:var(--cuero-osc);
+    background-image:radial-gradient(rgba(201,183,156,.05) 1px, transparent 1px);
+    background-size:4px 4px;
+    color:var(--hueso); font-family:'Archivo',system-ui,sans-serif;
+  }
+  .wrap{max-width:520px; margin:0 auto; padding:0 18px}
+
+  /* ---- Encabezado ---- */
+  header{text-align:center; padding:34px 18px 26px}
+  .logo{max-width:min(420px,88%); width:100%; height:auto; margin:0 auto; display:block}
+  .marca{ /* solo para lectores de pantalla: el logo de arriba ya trae el nombre */
+    position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0);
+  }
+  .invitacion{
+    max-width:380px; margin:10px auto 18px; color:var(--hueso);
+    font-size:17.5px; line-height:1.55; font-weight:500;
+  }
+  .invitacion strong{
+    font-family:'Archivo Black',sans-serif; font-weight:400;
+    font-size:1.35em; color:var(--arena); letter-spacing:.02em;
+  }
+  .datos{font-family:'Bebas Neue',sans-serif; font-size:21px; letter-spacing:.03em; color:var(--arena); margin:0}
+  .cupo{
+    display:inline-block; margin-top:16px; padding:8px 18px;
+    background:var(--denim); font-family:'Bebas Neue',sans-serif;
+    font-size:19px; letter-spacing:.04em; border-radius:3px;
+  }
+  .incluye{
+    max-width:360px; margin:10px auto 0; color:var(--arena);
+    font-size:13px; line-height:1.35; letter-spacing:.02em;
+  }
+
+  /* ---- Formulario ---- */
+  .campo{margin-bottom:17px}
+  label{display:block; font-size:13.5px; font-weight:700; color:var(--arena); margin-bottom:6px}
+  .op{font-weight:400; color:#8A7358}
+  input[type=text], input[type=tel], select{
+    width:100%; padding:13px 14px;
+    background:#54301A; color:var(--hueso);
+    border:2px solid #7A5433; border-radius:3px;
+    font-family:inherit; font-size:16px; /* 16px evita el zoom automático en iOS */
+  }
+  input:focus, select:focus{outline:3px solid var(--arena); outline-offset:2px; border-color:var(--arena)}
+  .err{border-color:#E0654A !important}
+  .msj-err{color:#F0917C; font-size:13px; margin-top:5px; display:none}
+
+
+  /* ---- Bloque opcional de foto ---- */
+  .opcional{
+    margin:22px 0; padding:16px;
+    border:2px dashed #7A5433; border-radius:4px; background:rgba(84,48,26,.4);
+  }
+  .fila{display:flex; align-items:flex-start; gap:12px; cursor:pointer}
+  .fila input[type=checkbox]{width:22px; height:22px; margin-top:2px; accent-color:var(--denim); flex-shrink:0}
+  .fila b{display:block; font-size:15px; margin-bottom:3px}
+  .fila span{font-size:13px; color:#A89078; line-height:1.45}
+  .zona-foto{margin-top:14px; display:none}
+  .subir{
+    display:block; padding:15px; text-align:center; cursor:pointer;
+    background:#54301A; border:2px dashed #8A6440; border-radius:3px;
+    font-size:14.5px; color:#C9B79C;
+  }
+  .subir input{position:absolute; width:1px; height:1px; opacity:0}
+  #vista{max-width:130px; border-radius:3px; margin-top:12px; display:none}
+
+  /* ---- Botón principal ---- */
+  .enviar{
+    width:100%; margin-top:8px; padding:17px; cursor:pointer;
+    background:var(--denim); color:#fff; border:none; border-radius:3px;
+    font-family:'Archivo Black',sans-serif; font-size:18px;
+    box-shadow:4px 4px 0 var(--cuero);
+  }
+  .enviar:active{transform:translate(2px,2px); box-shadow:2px 2px 0 var(--cuero)}
+  .nota{font-size:12.5px; color:#8A7358; text-align:center; margin-top:14px; line-height:1.5}
+
+  /* ---- Pantalla de confirmación ---- */
+  #listo{display:none; text-align:center; padding-top:20px}
+  .numero{
+    font-family:'Archivo Black',sans-serif; font-size:76px;
+    color:var(--hueso); line-height:1; margin:10px 0 4px;
+  }
+  .aviso-pago{
+    background:rgba(27,58,140,.25); border-left:5px solid var(--denim);
+    padding:15px; border-radius:3px; text-align:left; margin:22px 0;
+    font-size:14.5px; line-height:1.6;
+  }
+  .banco{
+    background:#54301A; border:2px solid var(--arena); border-radius:4px;
+    padding:18px 16px; margin:20px 0 16px; text-align:center;
+  }
+  .banco-tit{
+    font-family:'Bebas Neue',sans-serif; font-size:19px; letter-spacing:.05em;
+    color:var(--arena); margin-bottom:10px;
+  }
+  .titular{font-size:14.5px; margin-bottom:12px; line-height:1.4}
+  .tarjeta{
+    font-family:'Archivo Black',sans-serif; font-size:clamp(20px,5.6vw,26px);
+    letter-spacing:.04em; color:var(--hueso); margin-bottom:14px;
+    /* seleccionable, por si prefieren copiarlo a mano */
+    user-select:all;
+  }
+  .copiar{
+    width:100%; padding:13px; cursor:pointer;
+    background:var(--arena); color:var(--cuero-osc); border:none; border-radius:3px;
+    font-family:'Bebas Neue',sans-serif; font-size:19px; letter-spacing:.03em;
+  }
+  .copiar.hecho{background:#7FD9A2}
+  .monto{
+    margin-top:13px; font-family:'Bebas Neue',sans-serif;
+    font-size:22px; letter-spacing:.04em; color:var(--arena);
+  }
+
+  .wa{
+    display:block; padding:18px; margin-top:6px;
+    background:var(--verde-wa); color:#06301A; text-decoration:none;
+    font-family:'Archivo Black',sans-serif; font-size:17px; border-radius:3px;
+  }
+  /* Contorneado en vez de sólido: presente pero sin competir con el
+     botón de pago, que es la acción que de verdad importa. */
+  .ig{
+    display:block; padding:15px; margin-top:12px;
+    background:transparent; color:var(--arena); text-decoration:none;
+    border:2px solid var(--arena); border-radius:3px;
+    font-family:'Bebas Neue',sans-serif; font-size:20px; letter-spacing:.03em;
+  }
+  footer{text-align:center; font-size:12px; color:#6E5B45; margin-top:40px}
+</style>
+
+<div class="wrap">
+  <header>
+    <img class="logo" src="logo.png" alt="Runneada Norteña · Social Run">
+    <h1 class="marca">Runneada Norteña</h1>
+    <p class="invitacion">Corre con nosotros al ritmo de la música en vivo, recorre <strong>4K</strong> y disfruta de una tarde diferente.</p>
+    <p class="datos">SÁBADO 26 DE SEPTIEMBRE · CAMARGO, TAMPS.</p>
+    <div class="cupo">KIT $200 · CUPO LIMITADO</div>
+    <p class="incluye">Música en vivo, pañuelo, hidratación y convivencia</p>
+  </header>
+
+  <!-- ============ FORMULARIO ============ -->
+  <div id="forma">
+    <div class="campo">
+      <label for="nombre">Nombre completo</label>
+      <input type="text" id="nombre" autocomplete="name" placeholder="Tu nombre y apellido">
+      <div class="msj-err" id="e-nombre">Escribe tu nombre completo.</div>
+    </div>
+
+    <div class="campo">
+      <label for="pueblo">¿De dónde eres?</label>
+      <select id="pueblo">
+        <option value="">Elige tu ciudad</option>
+        <option>Camargo</option>
+        <option>Díaz Ordaz</option>
+        <option>Comales</option>
+        <option>Miguel Alemán</option>
+        <option>Reynosa</option>
+        <option>Río Bravo</option>
+        <option>Nuevo Progreso</option>
+        <option>Otro</option>
+      </select>
+      <div class="msj-err" id="e-pueblo">Elige de dónde eres.</div>
+    </div>
+
+    <div class="campo">
+      <label for="tel">WhatsApp</label>
+      <!-- type=tel abre el teclado numérico en el celular -->
+      <input type="tel" id="tel" inputmode="tel" autocomplete="tel" placeholder="10 dígitos">
+      <div class="msj-err" id="e-tel">Escribe un número de 10 dígitos.</div>
+    </div>
+
+    <!-- El opt-in de foto: separado y explícito, para que nadie se
+         sorprenda de aparecer publicado. -->
+    <div class="opcional">
+      <label class="fila" for="permiso">
+        <input type="checkbox" id="permiso">
+        <div>
+          <b>Que Fit-Hour me postee en sus historias</b>
+          <span>Súbenos una foto y te publicamos en Instagram cuando quedes
+                registrado, para que la compartas. Es opcional.</span>
+        </div>
+      </label>
+
+      <div class="zona-foto" id="zonaFoto">
+        <div class="campo" style="margin:14px 0 12px">
+          <label for="ig">Tu Instagram <span class="op">— para etiquetarte</span></label>
+          <input type="text" id="ig" placeholder="@tuusuario" autocapitalize="off">
+        </div>
+        <label class="subir" id="etiquetaFoto">
+          Elegir foto
+          <input type="file" id="foto" accept="image/*">
+        </label>
+        <img id="vista" alt="Tu foto">
+      </div>
+    </div>
+
+    <button class="enviar" id="enviar">Apartar mi lugar</button>
+    <p class="msj-err" id="e-envio" style="text-align:center">
+      No se pudo enviar tu registro. Revisa tu internet e intenta de nuevo.
+    </p>
+    <p class="nota">
+      Al continuar te mandamos a WhatsApp con Fit-Hour para que hagas tu pago.
+      Tu lugar queda apartado cuando ellos confirmen.
+    </p>
+  </div>
+
+  <!-- ============ CONFIRMACIÓN ============ -->
+  <div id="listo">
+    <p class="datos" style="margin-bottom:0">YA QUEDASTE APARTADO</p>
+    <div class="numero" id="mostrarNum">#--</div>
+    <p class="datos" id="mostrarNombre" style="color:var(--hueso)"></p>
+
+    <div class="aviso-pago">
+      <b>Falta un paso:</b> tu lugar se confirma hasta que hagas el pago
+      de $200 y mandes tu comprobante por WhatsApp.
+    </div>
+
+    <div class="banco">
+      <div class="banco-tit">TRANSFERENCIA · BANORTE</div>
+      <div class="titular">Tania Elisse Zamora Villavicencio</div>
+      <!-- El número se muestra espaciado para leerlo, pero se copia sin
+           espacios: así se pega directo en la app del banco. -->
+      <div class="tarjeta" id="tarjeta">4189 1432 5426 2085</div>
+      <button class="copiar" id="copiar">Copiar número</button>
+      <div class="monto">MONTO: $200</div>
+    </div>
+
+    <a class="wa" id="irWa" href="#">Mandar mi comprobante por WhatsApp</a>
+
+    <!-- El botón de seguir va DESPUÉS del de WhatsApp y con menos peso
+         visual: el pago es la acción que importa, seguir es el extra. -->
+    <a class="ig" id="irIg" href="https://www.instagram.com/fit_hour_runningclub"
+       target="_blank" rel="noopener">Seguir a Fit-Hour en Instagram</a>
+    <p class="nota" style="margin-top:10px">
+      Ahí publican los avisos y las fotos del evento.
+    </p>
+
+    <p class="nota">También puedes pagar en efectivo en Expresión Digital Camargo.</p>
+  </div>
+
+  <footer>Fit-Hour Running Club · herramienta cortesía de Alpha Dynamics</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const WA = '528979718959';   // WhatsApp de Fit-Hour, con lada de México (52)
+
+// La anon key está diseñada para vivir en el cliente — la protección real
+// de los datos (teléfonos, fotos) la da RLS del lado de Supabase, no que
+// esta clave esté "escondida".
+const SUPABASE_URL = 'https://gvmwncxufhbxmgcokmus.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd2bXduY3h1ZmhieG1nY29rbXVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NTMyODYsImV4cCI6MjEwNDAyOTI4Nn0.YuSnjGjjTvy8bt9QS-EVsaQu7WRmrJuK-1f5xxahoyY';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let fotoData = null;   // data URL, para la vista previa
+let fotoBlob = null;   // el archivo real (ya redimensionado) que se sube
+
+// ---- Mostrar la zona de foto solo si aceptan ----
+$('permiso').addEventListener('change', e => {
+  $('zonaFoto').style.display = e.target.checked ? 'block' : 'none';
+});
+
+// ---- Carga de foto (con soporte HEIC del iPhone) ----
+let heicPromesa = null;
+function cargarHeic(){
+  if (heicPromesa) return heicPromesa;
+  heicPromesa = new Promise((ok, mal) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+    s.onload = ok; s.onerror = mal;
+    document.head.appendChild(s);
+  });
+  return heicPromesa;
+}
+const avisoFoto = t => $('etiquetaFoto').firstChild.nodeValue = t + ' ';
+
+// Achica la foto antes de subirla: los celulares entregan fotos de varios
+// MB, y en el evento la conexión puede ser mala — con esto la subida es
+// rápida y liviana sin que se note la diferencia en el post final.
+function achicar(blob, maxLado = 1600, calidad = .85){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, maxLado / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = img.width*k; c.height = img.height*k;
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(b => resolve(b || blob), 'image/jpeg', calidad);
+    };
+    img.onerror = () => resolve(blob);
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+async function mostrar(blob){
+  fotoBlob = await achicar(blob);
+  const r = new FileReader();
+  r.onload = () => {
+    fotoData = r.result;
+    $('vista').src = fotoData;
+    $('vista').style.display = 'block';
+    avisoFoto('Cambiar foto');
+  };
+  r.readAsDataURL(fotoBlob);
+}
+
+$('foto').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  // El .heic del iPhone a veces llega sin MIME type, por eso también
+  // se revisa la extensión.
+  if (/\.(heic|heif)$/i.test(f.name) || /heic|heif/i.test(f.type)){
+    avisoFoto('Preparando tu foto…');
+    try { await cargarHeic();
+      const j = await heic2any({blob:f, toType:'image/jpeg', quality:.9});
+      await mostrar(Array.isArray(j) ? j[0] : j);
+    } catch { avisoFoto('No se pudo abrir esa foto, prueba con otra'); }
+    return;
+  }
+  await mostrar(f);
+});
+
+// ---- Validación ----
+const mostrarError = c => { $('e-'+c).style.display='block'; const i=$(c); if(i) i.classList.add('err'); };
+const ocultarError = c => { $('e-'+c).style.display='none';  const i=$(c); if(i) i.classList.remove('err'); };
+
+$('enviar').addEventListener('click', async () => {
+  const nombre = $('nombre').value.trim();
+  const pueblo = $('pueblo').value;
+  const tel    = $('tel').value.replace(/\D/g,'');   // solo dígitos
+  let ok = true;
+
+  ['nombre','pueblo','tel'].forEach(ocultarError);
+  $('e-envio').style.display = 'none';
+  if (nombre.length < 4){ mostrarError('nombre'); ok = false; }
+  if (!pueblo)          { mostrarError('pueblo'); ok = false; }
+  if (tel.length !== 10){ mostrarError('tel');    ok = false; }
+
+  if (!ok){
+    document.querySelector('.err, .msj-err[style*="block"]')
+            ?.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+
+  const boton = $('enviar');
+  boton.disabled = true;
+  boton.textContent = 'Enviando…';
+
+  try{
+    const permiso = $('permiso').checked;
+    let foto_url = null;
+
+    // La foto se sube primero: si falla, mejor no dejar un registro sin
+    // foto cuando la persona sí dio permiso y espera salir en el post.
+    if (permiso && fotoBlob){
+      const ruta = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+      const { error: errSubida } = await db.storage.from('fotos').upload(ruta, fotoBlob, {
+        contentType: 'image/jpeg'
+      });
+      if (errSubida) throw errSubida;
+      foto_url = db.storage.from('fotos').getPublicUrl(ruta).data.publicUrl;
+    }
+
+    // El número lo asigna la base de datos (columna identity) al
+    // registrarse — no al pagar, para que el corredor tenga algo que
+    // presumir justo cuando trae las ganas. Como es la base la que lo
+    // asigna, nunca se repite aunque dos personas se registren a la vez
+    // desde equipos distintos.
+    const { data, error } = await db.from('inscritos').insert({
+      nombre, pueblo, tel,
+      ig: $('ig').value.trim(),
+      permiso, foto_url,
+    }).select('num').single();
+    if (error) throw error;
+
+    const num = data.num;
+    $('mostrarNum').textContent = '#' + num;
+    $('mostrarNombre').textContent = nombre.toUpperCase();
+
+    // Mensaje pre-escrito: ella recibe el contexto sin tener que preguntar
+    const texto = `Hola! Soy ${nombre}, de ${pueblo}. Ya me registré en la ` +
+                  `Runneada Norteña, soy el corredor #${num}. ` +
+                  `Aquí les mando la captura de mi transferencia de $200.`;
+    $('irWa').href = `https://wa.me/${WA}?text=${encodeURIComponent(texto)}`;
+
+    $('forma').style.display = 'none';
+    $('listo').style.display = 'block';
+    window.scrollTo({top:0, behavior:'smooth'});
+  } catch(err){
+    console.error(err);
+    $('e-envio').style.display = 'block';
+    $('e-envio').scrollIntoView({behavior:'smooth', block:'center'});
+    boton.disabled = false;
+    boton.textContent = 'Apartar mi lugar';
+  }
+});
+
+// ---- Copiar el número de tarjeta ----
+$('copiar').addEventListener('click', async () => {
+  // Sin espacios: así se pega directo en la app del banco
+  const num = $('tarjeta').textContent.replace(/\s/g, '');
+  const b = $('copiar');
+  try {
+    await navigator.clipboard.writeText(num);
+    b.textContent = '¡Copiado!';
+    b.classList.add('hecho');
+  } catch {
+    // navigator.clipboard falla en http:// y en navegadores viejos.
+    // El respaldo selecciona el número para que lo copien a mano.
+    const r = document.createRange();
+    r.selectNodeContents($('tarjeta'));
+    const s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    b.textContent = 'Cópialo con tus dedos';
+  }
+  setTimeout(() => { b.textContent = 'Copiar número'; b.classList.remove('hecho'); }, 2500);
+});
+</script>
