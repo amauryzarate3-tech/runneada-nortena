@@ -300,6 +300,7 @@ function pintar(){
           }
           ${puedePostear ? `<button class="btn b-post" data-post="${r.num}">Generar post</button>` : ''}
           <a class="btn b-wa" href="${wa}" target="_blank" rel="noopener">WhatsApp</a>
+          <button class="btn b-quitar" data-corregir="${r.num}">Corregir monto</button>
         </div>
       </div>`;
   }).join('');
@@ -353,6 +354,29 @@ $('lista').addEventListener('click', async e => {
   if (b.dataset.post){
     const r = todos.find(x => x.num === +b.dataset.post);
     if (r) generarPost(r);
+  }
+
+  if (b.dataset.corregir){
+    const num = +b.dataset.corregir;
+    const r = todos.find(x => x.num === num);
+    if (!r) return;
+    // A diferencia de "Registrar anticipo" (que suma), esto REEMPLAZA el
+    // monto — sirve para deshacer un "Marcar pagado" sin querer, arreglar
+    // un anticipo mal capturado, etc.
+    const texto = prompt(
+      `Monto correcto ya pagado por ${r.nombre} (escribe 0 para dejarlo como no pagado):`,
+      String(r.monto_pagado)
+    );
+    if (texto === null) return;
+    const monto = Number(texto);
+    if (!Number.isFinite(monto) || monto < 0){ alert('Escribe un número válido (0 o más).'); return; }
+
+    b.disabled = true; b.textContent = 'Guardando…';
+    const { error } = await db.from('inscritos').update({
+      monto_pagado: monto, pagado: monto >= 200,
+    }).eq('num', num);
+    if (error){ console.error(error); alert('No se pudo guardar. Intenta de nuevo.'); }
+    await cargarYPintar();
   }
 });
 
