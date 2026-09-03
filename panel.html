@@ -419,7 +419,10 @@ function dibujar(img, r, fondo, ajuste){
   // "source-over", esto garantiza un lienzo realmente limpio.
   x.globalCompositeOperation = 'source-over';
   x.clearRect(0,0,W,H);
-  x.fillStyle = '#3D2211'; x.fillRect(0,0,W,H);
+  // Beige (arena) en vez del café oscuro de antes: el logo (letras
+  // café/negro) resalta mucho más contra un fondo claro que contra un
+  // café muy parecido a sus propios colores.
+  x.fillStyle = '#C9B79C'; x.fillRect(0,0,W,H);
 
   // Logo arriba, a modo de título — el PNG ya viene recortado a su
   // contenido real (sin el margen transparente que traía el archivo
